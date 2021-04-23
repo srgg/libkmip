@@ -866,6 +866,7 @@ kmip_check_enum_value(enum kmip_version version, enum tag t, int value)
         {
             /* KMIP 1.0 */
             case KMIP_OP_CREATE:
+            case KMIP_OP_LOCATE:
             case KMIP_OP_GET:
             case KMIP_OP_DESTROY:
             return(KMIP_OK);
