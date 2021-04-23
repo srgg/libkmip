@@ -9879,6 +9879,32 @@ kmip_encode_create_response_payload(KMIP *ctx, const CreateResponsePayload *valu
 }
 
 int
+kmip_encode_locate_request_payload(KMIP *ctx, const LocateRequestPayload *value)
+{
+    CHECK_ENCODE_ARGS(ctx, value);
+
+    int result = 0;
+    result = kmip_encode_int32_be(ctx, TAG_TYPE(KMIP_TAG_REQUEST_PAYLOAD, KMIP_TYPE_STRUCTURE));
+    CHECK_RESULT(ctx, result);
+    
+    uint8 *length_index = ctx->index;
+    uint8 *value_index = ctx->index += 4;
+    
+    result = kmip_encode_attributes(ctx, value->attributes);
+    CHECK_RESULT(ctx, result);
+    
+    uint8 *curr_index = ctx->index;
+    ctx->index = length_index;
+    
+    result = kmip_encode_length(ctx, curr_index - value_index);
+    CHECK_RESULT(ctx, result);
+
+    ctx->index = curr_index;
+    
+    return(KMIP_OK);
+}
+
+int
 kmip_encode_get_request_payload(KMIP *ctx, const GetRequestPayload *value)
 {
     int result = 0;
@@ -10463,6 +10489,10 @@ kmip_encode_request_batch_item(KMIP *ctx, const RequestBatchItem *value)
     {
         case KMIP_OP_CREATE:
         result = kmip_encode_create_request_payload(ctx, (CreateRequestPayload*)value->request_payload);
+        break;
+
+        case KMIP_OP_LOCATE:
+        result = kmip_encode_locate_request_payload(ctx, (LocateRequestPayload*)value->request_payload);
         break;
         
         case KMIP_OP_GET:

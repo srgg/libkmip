@@ -1416,7 +1416,7 @@ int kmip_bio_send_request_encoding(KMIP *ctx, BIO *bio,
     return(KMIP_OK);
 }
 
-int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, char **uuid, int *uuid_size)
+int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attributes *attributes, char **uuid, int *uuid_size)
 {
     if(ctx == NULL || bio == NULL || attributes == NULL || uuid == NULL || uuid_size == NULL)
     {
