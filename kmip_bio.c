@@ -1615,48 +1615,28 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
     if(result != KMIP_STATUS_SUCCESS)
     {
         kmip_free_response_message(ctx, &resp_m);
+        kmip_free_buffer(ctx, encoding, buffer_total_size);
+        encoding = NULL;
         kmip_set_buffer(ctx, NULL, 0);
         return(result);
     }
 
-    /*
-    GetResponsePayload *pld = (GetResponsePayload *)resp_item.response_payload;
-
-    if(pld->object_type != KMIP_OBJTYPE_SYMMETRIC_KEY)
+    LocateResponsePayload *pld = (LocateResponsePayload *)resp_item.response_payload;
+    TextString *unique_identifier = pld->unique_identifier;
+    
+    char *result_id = ctx->calloc_func(ctx->state, 1, unique_identifier->size);
+    *uuid_size = unique_identifier->size;
+    for(int i = 0; i < *uuid_size; i++)
     {
-        kmip_free_response_message(ctx, &resp_m);
-        kmip_set_buffer(ctx, NULL, 0);
-        return(KMIP_OBJECT_MISMATCH);
+        result_id[i] = unique_identifier->value[i];
     }
-
-    SymmetricKey *symmetric_key = (SymmetricKey *)pld->object;
-    KeyBlock *block = symmetric_key->key_block;
-    if((block->key_format_type != KMIP_KEYFORMAT_RAW) ||
-        (block->key_wrapping_data != NULL))
-    {
-        kmip_free_response_message(ctx, &resp_m);
-        kmip_set_buffer(ctx, NULL, 0);
-        return(KMIP_OBJECT_MISMATCH);
-    }
-
-    KeyValue *block_value = (KeyValue *)block->key_value;
-    ByteString *material = (ByteString *)block_value->key_material;
-
-    char *result_key = ctx->calloc_func(ctx->state, 1, material->size);
-    *key_size = material->size;
-    for(int i = 0; i < *key_size; i++)
-    {
-        result_key[i] = material->value[i];
-    }
-    *key = result_key;
-    */
-
-    /* Clean up the response message, the encoding buffer, and the KMIP */
-    /* context. */
+    *uuid = result_id;
+    
+    /* Clean up the response message and the encoding buffer. */
     kmip_free_response_message(ctx, &resp_m);
     kmip_free_buffer(ctx, encoding, buffer_total_size);
     encoding = NULL;
     kmip_set_buffer(ctx, NULL, 0);
-
+    
     return(result);
 }

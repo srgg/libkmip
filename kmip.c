@@ -9895,24 +9895,33 @@ kmip_encode_locate_request_payload(KMIP *ctx, const LocateRequestPayload *value)
         result = kmip_encode_attribute(ctx, &value->attributes[i]);
         CHECK_RESULT(ctx, result);
     }
-    /*
-    Attributes *attributes = ctx->calloc_func(ctx->state, 1, sizeof(Attributes));
-    LinkedList *list = ctx->calloc_func(ctx->state, 1, sizeof(LinkedList));
-    attributes->attribute_list = list;
-    for(size_t i = 0; i < value->attribute_count; i++)
-    {
-        LinkedListItem *item = ctx->calloc_func(ctx->state, 1, sizeof(LinkedListItem));
-        item->data = kmip_deep_copy_attribute(ctx, &value->attributes[i]);
-        kmip_linked_list_enqueue(list, item);
-    }
 
-    result = kmip_encode_attributes(ctx, attributes);
-
-    kmip_free_attributes(ctx, attributes);
-    ctx->free_func(ctx->state, attributes);
-
+    uint8 *curr_index = ctx->index;
+    ctx->index = length_index;
+    
+    result = kmip_encode_length(ctx, curr_index - value_index);
     CHECK_RESULT(ctx, result);
-    */
+
+    ctx->index = curr_index;
+    
+    return(KMIP_OK);
+}
+
+int
+kmip_encode_locate_response_payload(KMIP *ctx, const LocateResponsePayload *value)
+{
+    CHECK_ENCODE_ARGS(ctx, value);
+
+    int result = 0;
+    result = kmip_encode_int32_be(ctx, TAG_TYPE(KMIP_TAG_RESPONSE_PAYLOAD, KMIP_TYPE_STRUCTURE));
+    CHECK_RESULT(ctx, result);
+    
+    uint8 *length_index = ctx->index;
+    uint8 *value_index = ctx->index += 4;
+    
+    result = kmip_encode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
+    CHECK_RESULT(ctx, result);
+
     uint8 *curr_index = ctx->index;
     ctx->index = length_index;
     
@@ -10586,6 +10595,11 @@ kmip_encode_response_batch_item(KMIP *ctx, const ResponseBatchItem *value)
         case KMIP_OP_CREATE:
         result = kmip_encode_create_response_payload(ctx, (CreateResponsePayload*)value->response_payload);
         break;
+
+        case KMIP_OP_LOCATE:
+        result = kmip_encode_locate_response_payload(ctx, (LocateResponsePayload*)value->response_payload);
+        break;
+
         
         case KMIP_OP_GET:
         result = kmip_encode_get_response_payload(ctx, (GetResponsePayload*)value->response_payload);
