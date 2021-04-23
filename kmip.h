@@ -416,6 +416,7 @@ enum operation
 {
     /* KMIP 1.0 */
     KMIP_OP_CREATE  = 0x01,
+    KMIP_OP_LOCATE  = 0x08,
     KMIP_OP_GET     = 0x0A,
     KMIP_OP_DESTROY = 0x14
 };
@@ -943,6 +944,18 @@ typedef struct create_response_payload
     TextString *unique_identifier;
     TemplateAttribute *template_attribute;
 } CreateResponsePayload;
+
+typedef struct locate_request_payload {
+    // MaximumItems        int;
+    // 9.1.3.3.2
+    // StorageStatusMask   int;
+    Attribute* attributes;
+} LocateRequestPayload;
+
+typedef struct locate_response_payload {
+    // TODO: May be repeated, need to handle that
+    TextString *unique_identifier;
+} LocateResponsePayload;
 
 typedef struct get_request_payload
 {
