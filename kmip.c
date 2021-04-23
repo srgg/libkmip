@@ -9890,6 +9890,12 @@ kmip_encode_locate_request_payload(KMIP *ctx, const LocateRequestPayload *value)
     uint8 *length_index = ctx->index;
     uint8 *value_index = ctx->index += 4;
 
+    for(size_t i = 0; i <value->attribute_count; i++)
+    {
+        result = kmip_encode_attribute(ctx, &value->attributes[i]);
+        CHECK_RESULT(ctx, result);
+    }
+    /*
     Attributes *attributes = ctx->calloc_func(ctx->state, 1, sizeof(Attributes));
     LinkedList *list = ctx->calloc_func(ctx->state, 1, sizeof(LinkedList));
     attributes->attribute_list = list;
@@ -9906,7 +9912,7 @@ kmip_encode_locate_request_payload(KMIP *ctx, const LocateRequestPayload *value)
     ctx->free_func(ctx->state, attributes);
 
     CHECK_RESULT(ctx, result);
-    
+    */
     uint8 *curr_index = ctx->index;
     ctx->index = length_index;
     
