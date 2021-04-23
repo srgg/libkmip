@@ -949,8 +949,9 @@ typedef struct locate_request_payload {
     // MaximumItems        int;
     // 9.1.3.3.2
     // StorageStatusMask   int;
-    //Attribute* attributes;
-    Attributes *attributes;
+    Attribute* attributes;
+    //Attributes *attributes;
+    int attribute_count;
 } LocateRequestPayload;
 
 typedef struct locate_response_payload {
