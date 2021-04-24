@@ -5280,6 +5280,42 @@ kmip_free_create_response_payload(KMIP *ctx, CreateResponsePayload *value)
 }
 
 void
+kmip_free_locate_request_payload(KMIP *ctx, LocateRequestPayload *value)
+{
+    if(value != NULL)
+    {
+        if(value->attributes != NULL)
+        {
+            for(size_t i = 0; i < value->attribute_count; i++)
+            {
+                kmip_free_attribute(ctx, &value->attributes[i]);
+            }
+            ctx->free_func(ctx->state, value->attributes);
+            
+            value->attributes = NULL;
+        }        
+    }
+    
+    return;
+}
+
+void
+kmip_free_locate_response_payload(KMIP *ctx, LocateResponsePayload *value)
+{
+    if(value != NULL)
+    {
+        if(value->unique_identifier != NULL)
+        {
+            kmip_free_text_string(ctx, value->unique_identifier);
+            ctx->free_func(ctx->state, value->unique_identifier);
+            value->unique_identifier = NULL;
+        }        
+    }
+
+    return;
+}
+
+void
 kmip_free_get_request_payload(KMIP *ctx, GetRequestPayload *value)
 {
     if(value != NULL)
@@ -5407,6 +5443,11 @@ kmip_free_request_batch_item(KMIP *ctx, RequestBatchItem *value)
                 case KMIP_OP_CREATE:
                 kmip_free_create_request_payload(ctx, (CreateRequestPayload *)value->request_payload);
                 break;
+
+                case KMIP_OP_LOCATE:
+                kmip_free_locate_request_payload(ctx, (LocateRequestPayload *)value->request_payload);
+                break;
+
                 
                 case KMIP_OP_GET:
                 kmip_free_get_request_payload(ctx, (GetRequestPayload *)value->request_payload);
@@ -5471,6 +5512,10 @@ kmip_free_response_batch_item(KMIP *ctx, ResponseBatchItem *value)
             {
                 case KMIP_OP_CREATE:
                 kmip_free_create_response_payload(ctx, (CreateResponsePayload *)value->response_payload);
+                break;
+
+                case KMIP_OP_LOCATE:
+                kmip_free_locate_response_payload(ctx, (LocateResponsePayload *)value->response_payload);
                 break;
                 
                 case KMIP_OP_GET:
@@ -12417,6 +12462,102 @@ kmip_decode_create_response_payload(KMIP *ctx, CreateResponsePayload *value)
 
     return(KMIP_OK);
 }
+
+int
+kmip_decode_locate_request_payload(KMIP *ctx, LocateRequestPayload *value)
+{
+    CHECK_DECODE_ARGS(ctx, value);
+    CHECK_BUFFER_FULL(ctx, 8);
+    
+    int result = 0;
+    int32 tag_type = 0;
+    uint32 length = 0;
+    
+    kmip_decode_int32_be(ctx, &tag_type);
+    CHECK_TAG_TYPE(ctx, tag_type, KMIP_TAG_REQUEST_PAYLOAD, KMIP_TYPE_STRUCTURE);
+    
+    kmip_decode_length(ctx, &length);
+    CHECK_BUFFER_FULL(ctx, length);
+
+    value->attribute_count = kmip_get_num_items_next(ctx, KMIP_TAG_ATTRIBUTE);
+    if(value->attribute_count > 0)
+    {
+        value->attributes = ctx->calloc_func(ctx->state, value->attribute_count, sizeof(Attribute));
+        CHECK_NEW_MEMORY(ctx, value->attributes, value->attribute_count * sizeof(Attribute), "sequence of Attribute structures");
+        
+        for(size_t i = 0; i < value->attribute_count; i++)
+        {
+            result = kmip_decode_attribute(ctx, &value->attributes[i]);
+            CHECK_RESULT(ctx, result);
+        }
+    }
+
+    // result = kmip_decode_enum(ctx, KMIP_TAG_OBJECT_TYPE, &value->object_type);
+    // CHECK_RESULT(ctx, result);
+    // CHECK_ENUM(ctx, KMIP_TAG_OBJECT_TYPE, value->object_type);
+    //
+    // if(ctx->version < KMIP_2_0)
+    // {
+    //     value->template_attribute = ctx->calloc_func(ctx->state, 1, sizeof(TemplateAttribute));
+    //     if(value->template_attribute == NULL)
+    //     {
+    //         HANDLE_FAILED_ALLOC(ctx, sizeof(TemplateAttribute), "TemplateAttribute");
+    //     }
+    //     result = kmip_decode_template_attribute(ctx, value->template_attribute);
+    //     if(result != KMIP_OK)
+    //     {
+    //         kmip_free_template_attribute(ctx, value->template_attribute);
+    //         ctx->free_func(ctx, value->template_attribute);
+    //         value->template_attribute = NULL;
+    //         HANDLE_FAILURE(ctx, result);
+    //     }
+    // }
+    // else
+    // {
+    //     value->attributes = ctx->calloc_func(ctx->state, 1, sizeof(Attributes));
+    //     if(value->attributes == NULL)
+    //     {
+    //         HANDLE_FAILED_ALLOC(ctx, sizeof(Attributes), "Attributes");
+    //     }
+    //     result = kmip_decode_attributes(ctx, value->attributes);
+    //     if(result != KMIP_OK)
+    //     {
+    //         kmip_free_attributes(ctx, value->attributes);
+    //         ctx->free_func(ctx, value->attributes);
+    //         value->attributes = NULL;
+
+    //         HANDLE_FAILURE(ctx, result);
+    //     }
+
+    //     // if(kmip_is_tag_next(ctx, KMIP_TAG_PROTECTION_STORAGE_MASKS))
+    //     // {
+    //     //     value->protection_storage_masks = ctx->calloc_func(ctx->state, 1, sizeof(ProtectionStorageMasks));
+    //     //     if(value->protection_storage_masks == NULL)
+    //     //     {
+    //     //         kmip_free_attributes(ctx, value->attributes);
+    //     //         ctx->free_func(ctx, value->attributes);
+    //     //         value->attributes = NULL;
+
+    //     //         HANDLE_FAILED_ALLOC(ctx, sizeof(ProtectionStorageMasks), "ProtectionStorageMasks");
+    //     //     }
+    //     //     result = kmip_decode_protection_storage_masks(ctx, value->protection_storage_masks);
+    //     //     if(result != KMIP_OK)
+    //     //     {
+    //     //         kmip_free_attributes(ctx, value->attributes);
+    //     //         kmip_free_protection_storage_masks(ctx, value->protection_storage_masks);
+    //     //         ctx->free_func(ctx, value->attributes);
+    //     //         ctx->free_func(ctx, value->protection_storage_masks);
+    //     //         value->attributes = NULL;
+    //     //         value->protection_storage_masks = NULL;
+
+    //     //         HANDLE_FAILURE(ctx, result);
+    //     //     }
+    //     // }
+    // }
+    
+    return(KMIP_OK);
+}
+
 
 int
 kmip_decode_locate_response_payload(KMIP *ctx, LocateResponsePayload *value)
