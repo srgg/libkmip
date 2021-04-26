@@ -1641,7 +1641,18 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
     fprintf(stderr,"result_status OK %s", result);
 
     LocateResponsePayload *pld = (LocateResponsePayload *)resp_item.response_payload;
+    if (pld == NULL) {
+        fprintf(stderr,"LocateResponsePayload IS NULL", result);
+    } else {
+        fprintf(stderr,"LocateResponsePayload IS OK", result);
+    }
+
     TextString *unique_identifier = pld->unique_identifier;
+    if (pld == NULL) {
+        fprintf(stderr,"unique_identifier IS NULL", result);
+    } else {
+        fprintf(stderr,"unique_identifier IS OK", result);
+    }
     
     char *result_id = ctx->calloc_func(ctx->state, 1, unique_identifier->size);
     *uuid_size = unique_identifier->size;
