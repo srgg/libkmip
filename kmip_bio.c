@@ -1648,19 +1648,19 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
     }
 
     TextString *unique_identifier = pld->unique_identifier;
-    if (unique_identifier == NULL) {
-        fprintf(stderr,"unique_identifier IS NULL", result);
+    if (unique_identifier != NULL) {    
+        char *result_id = ctx->calloc_func(ctx->state, 1, unique_identifier->size);
+        *uuid_size = unique_identifier->size;
+        for(int i = 0; i < *uuid_size; i++)
+        {
+            result_id[i] = unique_identifier->value[i];
+        }
+
+        *uuid = result_id;
     } else {
-        fprintf(stderr,"unique_identifier IS OK", result);
+        *uuid = NULL;
+        *uuid_size = 0;
     }
-    
-    char *result_id = ctx->calloc_func(ctx->state, 1, unique_identifier->size);
-    *uuid_size = unique_identifier->size;
-    for(int i = 0; i < *uuid_size; i++)
-    {
-        result_id[i] = unique_identifier->value[i];
-    }
-    *uuid = result_id;
 
     fprintf(stderr,"LocateResponsePayload OK");
 
