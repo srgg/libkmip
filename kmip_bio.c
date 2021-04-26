@@ -1614,12 +1614,19 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
 
     if(result != KMIP_STATUS_SUCCESS)
     {
+        printf("###! An error occurred while locating the symmetric key.");
+        printf("Error Code: %d\n", result);
+        printf("Error Name: ");
+
         kmip_free_response_message(ctx, &resp_m);
         kmip_free_buffer(ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_set_buffer(ctx, NULL, 0);
         return(result);
     }
+
+    printf("###! NO error occurred while locating the symmetric key.");
+    printf("Error Code: %d\n", result);
 
     LocateResponsePayload *pld = (LocateResponsePayload *)resp_item.response_payload;
     TextString *unique_identifier = pld->unique_identifier;
