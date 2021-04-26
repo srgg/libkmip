@@ -1423,6 +1423,11 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
         return(KMIP_ARG_INVALID);
     }
 
+
+    fprintf(stderr,"kmip_bio_locate_with_context");
+
+
+
     /* Set up the initial encoding buffer. */
     size_t buffer_blocks = 1;
     size_t buffer_block_size = 1024;
@@ -1527,12 +1532,10 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
         return(KMIP_IO_FAILURE);
     }
 
-            
-    printf("###! BIO_write OK.");
-
-
     kmip_free_buffer(ctx, encoding, buffer_total_size);
     encoding = NULL;
+
+    fprintf(stderr,"response has been sent");
 
     /* Read the response message. Dynamically resize the encoding buffer  */
     /* to align with the message size advertised by the message encoding. */
@@ -1592,6 +1595,9 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
 
     kmip_set_buffer(ctx, encoding, buffer_block_size);
 
+    fprintf(stderr,"request has been read");
+
+
     /* Decode the response message and retrieve the operation result status. */
     ResponseMessage resp_m = {0};
     int decode_result = kmip_decode_response_message(ctx, &resp_m);
@@ -1607,8 +1613,7 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
     encoding = NULL;
 
             
-    printf("###! kmip_decode_response_message OK.");
-
+    fprintf(stderr,"(###! kmip_decode_response_message OK.");
 
     if(resp_m.batch_count != 1 || resp_m.batch_items == NULL)
     {
@@ -1617,16 +1622,14 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
         return(KMIP_MALFORMED_RESPONSE);
     }
 
-    printf("###! 2 resp_m.batch_count OK.");
+    fprintf(stderr,"(###! resp_m.batch_count OK.");
 
     ResponseBatchItem resp_item = resp_m.batch_items[0];
     enum result_status result = resp_item.result_status;
 
     if(result != KMIP_STATUS_SUCCESS)
     {
-        printf("###! An error occurred while locating the symmetric key.");
-        printf("Error Code: %d\n", result);
-        printf("Error Name: ");
+        fprintf(stderr,"result_status ERROR %s", result);
 
         kmip_free_response_message(ctx, &resp_m);
         kmip_free_buffer(ctx, encoding, buffer_total_size);
@@ -1634,9 +1637,8 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
         kmip_set_buffer(ctx, NULL, 0);
         return(result);
     }
-
-    printf("###! NO error occurred while locating the symmetric key.");
-    printf("Error Code: %d\n", result);
+    
+    fprintf(stderr,"result_status OK %s", result);
 
     LocateResponsePayload *pld = (LocateResponsePayload *)resp_item.response_payload;
     TextString *unique_identifier = pld->unique_identifier;
@@ -1648,12 +1650,15 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
         result_id[i] = unique_identifier->value[i];
     }
     *uuid = result_id;
-    
+
+    fprintf(stderr,"LocateResponsePayload OK");
+
     /* Clean up the response message and the encoding buffer. */
     kmip_free_response_message(ctx, &resp_m);
     kmip_free_buffer(ctx, encoding, buffer_total_size);
     encoding = NULL;
     kmip_set_buffer(ctx, NULL, 0);
     
+    fprintf(stderr,"ALL DONE");
     return(result);
 }
