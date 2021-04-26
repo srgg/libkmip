@@ -1527,6 +1527,10 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
         return(KMIP_IO_FAILURE);
     }
 
+            
+    printf("###! BIO_write OK.");
+
+
     kmip_free_buffer(ctx, encoding, buffer_total_size);
     encoding = NULL;
 
@@ -1602,12 +1606,18 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
     kmip_free_buffer(ctx, encoding, buffer_total_size);
     encoding = NULL;
 
+            
+    printf("###! kmip_decode_response_message OK.");
+
+
     if(resp_m.batch_count != 1 || resp_m.batch_items == NULL)
     {
         kmip_free_response_message(ctx, &resp_m);
         kmip_set_buffer(ctx, NULL, 0);
         return(KMIP_MALFORMED_RESPONSE);
     }
+
+    printf("###! 2 resp_m.batch_count OK.");
 
     ResponseBatchItem resp_item = resp_m.batch_items[0];
     enum result_status result = resp_item.result_status;
