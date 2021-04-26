@@ -1648,7 +1648,7 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
     }
 
     TextString *unique_identifier = pld->unique_identifier;
-    if (pld == NULL) {
+    if (unique_identifier == NULL) {
         fprintf(stderr,"unique_identifier IS NULL", result);
     } else {
         fprintf(stderr,"unique_identifier IS OK", result);
