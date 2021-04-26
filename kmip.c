@@ -12581,6 +12581,8 @@ kmip_decode_locate_response_payload(KMIP *ctx, LocateResponsePayload *value)
         CHECK_NEW_MEMORY(ctx, value->unique_identifier, sizeof(TextString), "UniqueIdentifier text string");
         result = kmip_decode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
         CHECK_RESULT(ctx, result);
+    } else {
+        value->unique_identifier = NULL;
     }
 
     return(KMIP_OK);
