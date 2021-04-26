@@ -12574,12 +12574,14 @@ kmip_decode_locate_response_payload(KMIP *ctx, LocateResponsePayload *value)
     
     kmip_decode_length(ctx, &length);
     CHECK_BUFFER_FULL(ctx, length);
-    
-    value->unique_identifier = ctx->calloc_func(ctx->state, 1, sizeof(TextString));
-    CHECK_NEW_MEMORY(ctx, value->unique_identifier, sizeof(TextString), "UniqueIdentifier text string");
-    
-    result = kmip_decode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
-    CHECK_RESULT(ctx, result);
+
+    if(kmip_is_tag_next(ctx, KMIP_TAG_UNIQUE_IDENTIFIER))
+    {
+        value->unique_identifier = ctx->calloc_func(ctx->state, 1, sizeof(TextString));
+        CHECK_NEW_MEMORY(ctx, value->unique_identifier, sizeof(TextString), "UniqueIdentifier text string");
+        result = kmip_decode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
+        CHECK_RESULT(ctx, result);
+    }
 
     return(KMIP_OK);
 }
