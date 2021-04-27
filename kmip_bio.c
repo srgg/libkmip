@@ -1416,7 +1416,7 @@ int kmip_bio_send_request_encoding(KMIP *ctx, BIO *bio,
     return(KMIP_OK);
 }
 
-int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int attribute_count, char **uuid, int *uuid_size)
+int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int attribute_count, int* ids_count, char **uuid, int *uuid_size)
 {
     if(ctx == NULL || bio == NULL || attributes == NULL || uuid == NULL || uuid_size == NULL)
     {
@@ -1622,16 +1622,16 @@ int kmip_bio_locate_with_context(KMIP *ctx, BIO *bio, Attribute *attributes, int
     }
 
     LocateResponsePayload *pld = (LocateResponsePayload *)resp_item.response_payload;
+    *ids_count = pld->ids_count;
 
-    TextString *unique_identifier = pld->unique_identifier;    
-    
-    if (unique_identifier != NULL)
-    {    
-        char *result_id = ctx->calloc_func(ctx->state, 1, unique_identifier->size);
-        *uuid_size = unique_identifier->size;
+    if (pld->ids_count > 0) 
+    {
+        TextString unique_identifier = pld->ids[0];
+        char *result_id = ctx->calloc_func(ctx->state, 1, unique_identifier.size);
+        *uuid_size = unique_identifier.size;
         for(int i = 0; i < *uuid_size; i++)
         {
-            result_id[i] = unique_identifier->value[i];
+            result_id[i] = unique_identifier.value[i];
         }
 
         *uuid = result_id;

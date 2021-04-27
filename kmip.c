@@ -5304,12 +5304,23 @@ kmip_free_locate_response_payload(KMIP *ctx, LocateResponsePayload *value)
 {
     if(value != NULL)
     {
-        if(value->unique_identifier != NULL)
+        if (value->ids != NULL)
         {
-            kmip_free_text_string(ctx, value->unique_identifier);
-            ctx->free_func(ctx->state, value->unique_identifier);
-            value->unique_identifier = NULL;
-        }        
+            for(size_t i = 0; i < value->ids_count; i++)
+            {
+                kmip_free_text_string(ctx, &value->ids[i]);
+            }
+            ctx->free_func(ctx->state, value->ids);
+            
+            value->ids = NULL;
+
+        }
+        // if(value->unique_identifier != NULL)
+        // {
+        //     kmip_free_text_string(ctx, value->unique_identifier);
+        //     ctx->free_func(ctx->state, value->unique_identifier);
+        //     value->unique_identifier = NULL;
+        // }        
     }
 
     return;
@@ -9964,9 +9975,16 @@ kmip_encode_locate_response_payload(KMIP *ctx, const LocateResponsePayload *valu
     
     uint8 *length_index = ctx->index;
     uint8 *value_index = ctx->index += 4;
+
+    for(size_t i = 0; i < value->ids_count; i++)
+    {
+        result = kmip_encode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, &value->ids[i]);
+        CHECK_RESULT(ctx, result);
+    }
+
     
-    result = kmip_encode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
-    CHECK_RESULT(ctx, result);
+    // result = kmip_encode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
+    // CHECK_RESULT(ctx, result);
 
     uint8 *curr_index = ctx->index;
     ctx->index = length_index;
@@ -12575,15 +12593,38 @@ kmip_decode_locate_response_payload(KMIP *ctx, LocateResponsePayload *value)
     kmip_decode_length(ctx, &length);
     CHECK_BUFFER_FULL(ctx, length);
 
-    if(kmip_is_tag_next(ctx, KMIP_TAG_UNIQUE_IDENTIFIER))
+    value->ids_count = kmip_get_num_items_next(ctx, KMIP_TAG_UNIQUE_IDENTIFIER);
+    if(value->ids_count > 0)
     {
-        value->unique_identifier = ctx->calloc_func(ctx->state, 1, sizeof(TextString));
-        CHECK_NEW_MEMORY(ctx, value->unique_identifier, sizeof(TextString), "UniqueIdentifier text string");
-        result = kmip_decode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
-        CHECK_RESULT(ctx, result);
-    } else {
-        value->unique_identifier = NULL;
+        value->ids = ctx->calloc_func(ctx->state, value->ids_count, sizeof(TextString));
+        CHECK_NEW_MEMORY(ctx, value->ids, value->ids_count * sizeof(TextString), "sequence of UNIQUE_IDENTIFIER structures");
+        
+        for(size_t i = 0; i < value->ids_count; i++)
+        {
+            // result = kmip_decode_attribute(ctx, &value->ids[i]);
+            result = kmip_decode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, &value->ids[i]);
+            CHECK_RESULT(ctx, result);
+
+        // value->unique_identifier = ctx->calloc_func(ctx->state, 1, sizeof(TextString));
+        // CHECK_NEW_MEMORY(ctx, value->unique_identifier, sizeof(TextString), "UniqueIdentifier text string");
+        // result = kmip_decode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
+        // CHECK_RESULT(ctx, result);
+        }
+    } else 
+    {
+        value->ids = NULL;
     }
+
+
+    // if(kmip_is_tag_next(ctx, KMIP_TAG_UNIQUE_IDENTIFIER))
+    // {
+    //     value->unique_identifier = ctx->calloc_func(ctx->state, 1, sizeof(TextString));
+    //     CHECK_NEW_MEMORY(ctx, value->unique_identifier, sizeof(TextString), "UniqueIdentifier text string");
+    //     result = kmip_decode_text_string(ctx, KMIP_TAG_UNIQUE_IDENTIFIER, value->unique_identifier);
+    //     CHECK_RESULT(ctx, result);
+    // } else {
+    //     value->unique_identifier = NULL;
+    // }
 
     return(KMIP_OK);
 }

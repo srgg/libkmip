@@ -956,7 +956,8 @@ typedef struct locate_request_payload {
 
 typedef struct locate_response_payload {
     // TODO: May be repeated, need to handle that
-    TextString *unique_identifier;
+    TextString *ids;
+    int ids_count;
 } LocateResponsePayload;
 
 typedef struct get_request_payload
