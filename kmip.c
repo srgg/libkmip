@@ -9947,6 +9947,11 @@ kmip_encode_locate_request_payload(KMIP *ctx, const LocateRequestPayload *value)
     uint8 *length_index = ctx->index;
     uint8 *value_index = ctx->index += 4;
 
+    if (value->maximum_items > 0) {
+        result = kmip_encode_integer(ctx, KMIP_TAG_MAXIMUM_ITEMS, value->maximum_items);
+        CHECK_RESULT(ctx, result);
+    }
+
     for(size_t i = 0; i <value->attribute_count; i++)
     {
         result = kmip_encode_attribute(ctx, &value->attributes[i]);
@@ -12497,6 +12502,12 @@ kmip_decode_locate_request_payload(KMIP *ctx, LocateRequestPayload *value)
     kmip_decode_length(ctx, &length);
     CHECK_BUFFER_FULL(ctx, length);
 
+    if(kmip_is_tag_next(ctx, KMIP_TAG_MAXIMUM_ITEMS))
+    {
+        result = kmip_decode_integer(ctx, KMIP_TAG_MAXIMUM_ITEMS, &value->maximum_items);
+        CHECK_RESULT(ctx, result);
+    }
+
     value->attribute_count = kmip_get_num_items_next(ctx, KMIP_TAG_ATTRIBUTE);
     if(value->attribute_count > 0)
     {
@@ -12510,69 +12521,6 @@ kmip_decode_locate_request_payload(KMIP *ctx, LocateRequestPayload *value)
         }
     }
 
-    // result = kmip_decode_enum(ctx, KMIP_TAG_OBJECT_TYPE, &value->object_type);
-    // CHECK_RESULT(ctx, result);
-    // CHECK_ENUM(ctx, KMIP_TAG_OBJECT_TYPE, value->object_type);
-    //
-    // if(ctx->version < KMIP_2_0)
-    // {
-    //     value->template_attribute = ctx->calloc_func(ctx->state, 1, sizeof(TemplateAttribute));
-    //     if(value->template_attribute == NULL)
-    //     {
-    //         HANDLE_FAILED_ALLOC(ctx, sizeof(TemplateAttribute), "TemplateAttribute");
-    //     }
-    //     result = kmip_decode_template_attribute(ctx, value->template_attribute);
-    //     if(result != KMIP_OK)
-    //     {
-    //         kmip_free_template_attribute(ctx, value->template_attribute);
-    //         ctx->free_func(ctx, value->template_attribute);
-    //         value->template_attribute = NULL;
-    //         HANDLE_FAILURE(ctx, result);
-    //     }
-    // }
-    // else
-    // {
-    //     value->attributes = ctx->calloc_func(ctx->state, 1, sizeof(Attributes));
-    //     if(value->attributes == NULL)
-    //     {
-    //         HANDLE_FAILED_ALLOC(ctx, sizeof(Attributes), "Attributes");
-    //     }
-    //     result = kmip_decode_attributes(ctx, value->attributes);
-    //     if(result != KMIP_OK)
-    //     {
-    //         kmip_free_attributes(ctx, value->attributes);
-    //         ctx->free_func(ctx, value->attributes);
-    //         value->attributes = NULL;
-
-    //         HANDLE_FAILURE(ctx, result);
-    //     }
-
-    //     // if(kmip_is_tag_next(ctx, KMIP_TAG_PROTECTION_STORAGE_MASKS))
-    //     // {
-    //     //     value->protection_storage_masks = ctx->calloc_func(ctx->state, 1, sizeof(ProtectionStorageMasks));
-    //     //     if(value->protection_storage_masks == NULL)
-    //     //     {
-    //     //         kmip_free_attributes(ctx, value->attributes);
-    //     //         ctx->free_func(ctx, value->attributes);
-    //     //         value->attributes = NULL;
-
-    //     //         HANDLE_FAILED_ALLOC(ctx, sizeof(ProtectionStorageMasks), "ProtectionStorageMasks");
-    //     //     }
-    //     //     result = kmip_decode_protection_storage_masks(ctx, value->protection_storage_masks);
-    //     //     if(result != KMIP_OK)
-    //     //     {
-    //     //         kmip_free_attributes(ctx, value->attributes);
-    //     //         kmip_free_protection_storage_masks(ctx, value->protection_storage_masks);
-    //     //         ctx->free_func(ctx, value->attributes);
-    //     //         ctx->free_func(ctx, value->protection_storage_masks);
-    //     //         value->attributes = NULL;
-    //     //         value->protection_storage_masks = NULL;
-
-    //     //         HANDLE_FAILURE(ctx, result);
-    //     //     }
-    //     // }
-    // }
-    
     return(KMIP_OK);
 }
 

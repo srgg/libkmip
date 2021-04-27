@@ -601,6 +601,7 @@ enum tag
     KMIP_TAG_KEY_WRAPPING_SPECIFICATION       = 0x420047,
     KMIP_TAG_MAC_SIGNATURE                    = 0x42004D,
     KMIP_TAG_MAC_SIGNATURE_KEY_INFORMATION    = 0x42004E,
+    KMIP_TAG_MAXIMUM_ITEMS                    = 0x42004F,
     KMIP_TAG_MAXIMUM_RESPONSE_SIZE            = 0x420050,
     KMIP_TAG_NAME                             = 0x420053,
     KMIP_TAG_NAME_TYPE                        = 0x420054,
@@ -946,7 +947,7 @@ typedef struct create_response_payload
 } CreateResponsePayload;
 
 typedef struct locate_request_payload {
-    // MaximumItems        int;
+    int maximum_items;
     // 9.1.3.3.2
     // StorageStatusMask   int;
     Attribute* attributes;
