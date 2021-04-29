@@ -126,6 +126,8 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     encoding = ctx.calloc_func(ctx.state, buffer_blocks, buffer_block_size);
     if(encoding == NULL)
     {
+        fprintf(stderr, "kmipcreate#1: encoding == NULL\n");
+
         kmip_destroy(&ctx);
         return(KMIP_MEMORY_ALLOC_FAILED);
     }
@@ -133,6 +135,7 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     int recv = BIO_read(bio, encoding, buffer_total_size);
     if((size_t)recv != buffer_total_size)
     {
+        fprintf(stderr, "kmipcreate#2: recv != buffer_total_size\n");
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
@@ -147,6 +150,7 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     kmip_rewind(&ctx);
     if(length > ctx.max_message_size)
     {
+        fprintf(stderr, "kmipcreate#3: length > ctx.max_message_size\n");
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
@@ -165,6 +169,7 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     recv = BIO_read(bio, encoding + 8, length);
     if(recv != length)
     {
+        fprintf(stderr, "kmipcreate#4: recv != length\n");
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
@@ -178,6 +183,7 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     int decode_result = kmip_decode_response_message(&ctx, &resp_m);
     if(decode_result != KMIP_OK)
     {
+        fprintf(stderr, "kmipcreate#5: decode_result != KMIP_OK\n");
         kmip_free_response_message(&ctx, &resp_m);
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
@@ -187,6 +193,7 @@ int kmip_bio_create_symmetric_key(BIO *bio,
 
     if(resp_m.batch_count != 1 || resp_m.batch_items == NULL)
     {
+        fprintf(stderr, "kmipcreate#6: resp_m.batch_count != 1 || resp_m.batch_items == NULL\n");
         kmip_free_response_message(&ctx, &resp_m);
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
@@ -199,6 +206,8 @@ int kmip_bio_create_symmetric_key(BIO *bio,
 
     if(result != KMIP_STATUS_SUCCESS)
     {
+        fprintf(stderr, "kmipcreate#7: resp_item.result_status != KMIP_STATUS_SUCCESS\n");
+
         kmip_free_response_message(&ctx, &resp_m);
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
