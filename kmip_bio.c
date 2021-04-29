@@ -902,6 +902,8 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
     }
     fprintf(stderr, "kmipcreate#8: is OK\n");
 
+    kmip_print_response_message(stderr, &resp_m);
+
     
     ResponseBatchItem resp_item = resp_m.batch_items[0];
     enum result_status result = resp_item.result_status;
