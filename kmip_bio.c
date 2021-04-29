@@ -141,6 +141,9 @@ int kmip_bio_create_symmetric_key(BIO *bio,
         kmip_destroy(&ctx);
         return(KMIP_IO_FAILURE);
     }
+
+    fprintf(stderr, "kmipcreate#2: BIO_read is OK\n");
+
     
     kmip_set_buffer(&ctx, encoding, buffer_total_size);
     ctx.index += 4;
@@ -156,6 +159,8 @@ int kmip_bio_create_symmetric_key(BIO *bio,
         kmip_destroy(&ctx);
         return(KMIP_EXCEED_MAX_MESSAGE_SIZE);
     }
+    fprintf(stderr, "kmipcreate#3: is OK\n");
+
     
     kmip_set_buffer(&ctx, NULL, 0);
     uint8 *extended = ctx.realloc_func(ctx.state, encoding, buffer_total_size + length);
@@ -175,6 +180,8 @@ int kmip_bio_create_symmetric_key(BIO *bio,
         kmip_destroy(&ctx);
         return(KMIP_IO_FAILURE);
     }
+    fprintf(stderr, "kmipcreate#4: is OK\n");
+
     
     kmip_set_buffer(&ctx, encoding, buffer_block_size);
     
@@ -190,6 +197,8 @@ int kmip_bio_create_symmetric_key(BIO *bio,
         kmip_destroy(&ctx);
         return(decode_result);
     }
+    fprintf(stderr, "kmipcreate#5: is OK\n");
+
 
     if(resp_m.batch_count != 1 || resp_m.batch_items == NULL)
     {
@@ -200,6 +209,7 @@ int kmip_bio_create_symmetric_key(BIO *bio,
         kmip_destroy(&ctx);
         return(KMIP_MALFORMED_RESPONSE);
     }
+    fprintf(stderr, "kmipcreate#6: is OK\n");
     
     ResponseBatchItem resp_item = resp_m.batch_items[0];
     enum result_status result = resp_item.result_status;
@@ -215,6 +225,8 @@ int kmip_bio_create_symmetric_key(BIO *bio,
         kmip_destroy(&ctx);
         return(result);
     }
+    fprintf(stderr, "kmipcreate#7: is OK\n");
+
     
     CreateResponsePayload *pld = (CreateResponsePayload *)resp_item.response_payload;
     TextString *unique_identifier = pld->unique_identifier;
@@ -239,6 +251,9 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     kmip_set_buffer(&ctx, NULL, 0);
     kmip_destroy(&ctx);
     
+
+    fprintf(stderr, "kmipcreate: ALL DONE\n");
+
     return(result);
 }
 
