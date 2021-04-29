@@ -123,6 +123,8 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     buffer_block_size = 8;
     buffer_total_size = buffer_blocks * buffer_block_size;
     
+    printf("kmipcreate#0\n");
+
     encoding = ctx.calloc_func(ctx.state, buffer_blocks, buffer_block_size);
     if(encoding == NULL)
     {
