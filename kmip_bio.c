@@ -866,7 +866,9 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
 
     if(result != KMIP_STATUS_SUCCESS)
     {
-        kmip_set_error_message(ctx, resp_item.result_message);
+        if (resp_item.result_message != NULL) { 
+            kmip_set_error_message(ctx, resp_item.result_message->value);
+        }
         kmip_push_error_frame(ctx, __func__, __LINE__);
 
         kmip_free_response_message(ctx, &resp_m);
