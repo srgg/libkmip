@@ -128,8 +128,6 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     encoding = ctx.calloc_func(ctx.state, buffer_blocks, buffer_block_size);
     if(encoding == NULL)
     {
-        fprintf(stderr, "kmipcreate#1: encoding == NULL\n");
-
         kmip_destroy(&ctx);
         return(KMIP_MEMORY_ALLOC_FAILED);
     }
@@ -137,15 +135,11 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     int recv = BIO_read(bio, encoding, buffer_total_size);
     if((size_t)recv != buffer_total_size)
     {
-        fprintf(stderr, "kmipcreate#2: recv != buffer_total_size\n");
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
         return(KMIP_IO_FAILURE);
     }
-
-    fprintf(stderr, "kmipcreate#2: BIO_read is OK\n");
-
     
     kmip_set_buffer(&ctx, encoding, buffer_total_size);
     ctx.index += 4;
@@ -155,14 +149,11 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     kmip_rewind(&ctx);
     if(length > ctx.max_message_size)
     {
-        fprintf(stderr, "kmipcreate#3: length > ctx.max_message_size\n");
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
         return(KMIP_EXCEED_MAX_MESSAGE_SIZE);
     }
-    fprintf(stderr, "kmipcreate#3: is OK\n");
-
     
     kmip_set_buffer(&ctx, NULL, 0);
     uint8 *extended = ctx.realloc_func(ctx.state, encoding, buffer_total_size + length);
@@ -176,14 +167,11 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     recv = BIO_read(bio, encoding + 8, length);
     if(recv != length)
     {
-        fprintf(stderr, "kmipcreate#4: recv != length\n");
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
         return(KMIP_IO_FAILURE);
     }
-    fprintf(stderr, "kmipcreate#4: is OK\n");
-
     
     kmip_set_buffer(&ctx, encoding, buffer_block_size);
     
@@ -192,34 +180,27 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     int decode_result = kmip_decode_response_message(&ctx, &resp_m);
     if(decode_result != KMIP_OK)
     {
-        fprintf(stderr, "kmipcreate#5: decode_result != KMIP_OK\n");
         kmip_free_response_message(&ctx, &resp_m);
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
         return(decode_result);
     }
-    fprintf(stderr, "kmipcreate#5: is OK\n");
-
 
     if(resp_m.batch_count != 1 || resp_m.batch_items == NULL)
     {
-        fprintf(stderr, "kmipcreate#6: resp_m.batch_count != 1 || resp_m.batch_items == NULL\n");
         kmip_free_response_message(&ctx, &resp_m);
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_destroy(&ctx);
         return(KMIP_MALFORMED_RESPONSE);
     }
-    fprintf(stderr, "kmipcreate#6: is OK\n");
     
     ResponseBatchItem resp_item = resp_m.batch_items[0];
     enum result_status result = resp_item.result_status;
 
     if(result != KMIP_STATUS_SUCCESS)
     {
-        fprintf(stderr, "kmipcreate#7: resp_item.result_status != KMIP_STATUS_SUCCESS\n");
-
         kmip_free_response_message(&ctx, &resp_m);
         kmip_free_buffer(&ctx, encoding, buffer_total_size);
         encoding = NULL;
@@ -227,8 +208,6 @@ int kmip_bio_create_symmetric_key(BIO *bio,
         kmip_destroy(&ctx);
         return(result);
     }
-    fprintf(stderr, "kmipcreate#7: is OK\n");
-
     
     CreateResponsePayload *pld = (CreateResponsePayload *)resp_item.response_payload;
     TextString *unique_identifier = pld->unique_identifier;
@@ -252,10 +231,6 @@ int kmip_bio_create_symmetric_key(BIO *bio,
     encoding = NULL;
     kmip_set_buffer(&ctx, NULL, 0);
     kmip_destroy(&ctx);
-    
-
-    fprintf(stderr, "kmipcreate: ALL DONE\n");
-
     return(result);
 }
 
@@ -709,9 +684,6 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         return(KMIP_ARG_INVALID);
     }
 
-    fprintf(stderr, "kmipcreate#): is OK\n");
-
-    
     /* Set up the initial encoding buffer. */
     size_t buffer_blocks = 1;
     size_t buffer_block_size = 1024;
@@ -789,14 +761,11 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
     
     if(encode_result != KMIP_OK)
     {
-        fprintf(stderr, "kmipcreate#1: encode_result != KMIP_OK\n");
-
         kmip_free_buffer(ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_set_buffer(ctx, NULL, 0);
         return(encode_result);
     }
-    fprintf(stderr, "kmipcreate#1: is OK\n");
     
     int sent = BIO_write(bio, ctx->buffer, ctx->index - ctx->buffer);
     if(sent != ctx->index - ctx->buffer)
@@ -806,9 +775,6 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         kmip_set_buffer(ctx, NULL, 0);
         return(KMIP_IO_FAILURE);
     }
-
-    fprintf(stderr, "kmipcreate#2: is OK\n");
-
     
     kmip_free_buffer(ctx, encoding, buffer_total_size);
     encoding = NULL;
@@ -825,8 +791,6 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
     if(encoding == NULL)
         return(KMIP_MEMORY_ALLOC_FAILED);
     
-    fprintf(stderr, "kmipcreate#3: is OK\n");
-
     int recv = BIO_read(bio, encoding, buffer_total_size);
     if((size_t)recv != buffer_total_size)
     {
@@ -836,8 +800,6 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         return(KMIP_IO_FAILURE);
     }
     
-    fprintf(stderr, "kmipcreate#4: is OK\n");
-
     kmip_set_buffer(ctx, encoding, buffer_total_size);
     ctx->index += 4;
     int length = 0;
@@ -851,8 +813,6 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         kmip_set_buffer(ctx, NULL, 0);
         return(KMIP_EXCEED_MAX_MESSAGE_SIZE);
     }
-    fprintf(stderr, "kmipcreate#5: is OK\n");
-
     
     kmip_set_buffer(ctx, NULL, 0);
     uint8 *extended = ctx->realloc_func(ctx->state, encoding, buffer_total_size + length);
@@ -873,8 +833,6 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         kmip_set_buffer(ctx, NULL, 0);
         return(KMIP_IO_FAILURE);
     }
-    fprintf(stderr, "kmipcreate#6: is OK\n");
-
     
     kmip_set_buffer(ctx, encoding, buffer_block_size);
     
@@ -891,7 +849,6 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         encoding = NULL;
         return(decode_result);
     }
-    fprintf(stderr, "kmipcreate#7: is OK\n");
 
     if(resp_m.batch_count != 1 || resp_m.batch_items == NULL)
     {
@@ -900,9 +857,8 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         encoding = NULL;
         return(KMIP_MALFORMED_RESPONSE);
     }
-    fprintf(stderr, "kmipcreate#8: is OK\n");
 
-    kmip_print_response_message(stderr, &resp_m);
+    //kmip_print_response_message(stderr, &resp_m);
 
     
     ResponseBatchItem resp_item = resp_m.batch_items[0];
@@ -910,14 +866,15 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
 
     if(result != KMIP_STATUS_SUCCESS)
     {
+        kmip_set_error_message(ctx, resp_item.result_message);
+        kmip_push_error_frame(ctx, __func__, __LINE__);
+
         kmip_free_response_message(ctx, &resp_m);
         kmip_free_buffer(ctx, encoding, buffer_total_size);
         encoding = NULL;
         kmip_set_buffer(ctx, NULL, 0);
-        kmip_destroy(ctx);
         return(result);
     }
-    fprintf(stderr, "kmipcreate#9: is OK\n");
 
     
     CreateResponsePayload *pld = (CreateResponsePayload *)resp_item.response_payload;
