@@ -944,9 +944,11 @@ int kmip_bio_create_symmetric_key_with_context(KMIP *ctx, BIO *bio,
 
 int kmip_bio_get_symmetric_key_with_context(KMIP *ctx, BIO *bio,
                                             char *uuid, int uuid_size,
+                                            enum cryptographic_algorithm* cryptographic_algorithm,
                                             char **key, int *key_size)
 {
-    if(ctx == NULL || bio == NULL || uuid == NULL || uuid_size <= 0 || key == NULL || key_size == NULL)
+    if(ctx == NULL || bio == NULL || uuid == NULL || uuid_size <= 0 
+        || cryptographic_algorithm == NULL  || key == NULL || key_size == NULL)
     {
         return(KMIP_ARG_INVALID);
     }
@@ -1161,7 +1163,9 @@ int kmip_bio_get_symmetric_key_with_context(KMIP *ctx, BIO *bio,
         kmip_set_buffer(ctx, NULL, 0);
         return(KMIP_OBJECT_MISMATCH);
     }
-    
+
+    *cryptographic_algorithm = block->cryptographic_algorithm;
+
     KeyValue *block_value = block->key_value;
     ByteString *material = (ByteString *)block_value->key_material;
     
