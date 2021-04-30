@@ -225,8 +225,10 @@ use_mid_level_api(char *server_address,
         kmip_destroy(&kmip_context);
         return(result);
     }
+
+    enum cryptographic_algorithm algorithm;    
     
-    result = kmip_bio_get_symmetric_key_with_context(&kmip_context, bio, id, id_size, &key, &key_size);
+    result = kmip_bio_get_symmetric_key_with_context(&kmip_context, bio, id, id_size, &algorithm, &key, &key_size);
     
     BIO_free_all(bio);
     SSL_CTX_free(ctx);
@@ -255,6 +257,7 @@ use_mid_level_api(char *server_address,
         {
             printf("Symmetric Key ID: %s\n", id);
             printf("Symmetric Key Size: %d bits\n", key_size * 8);
+            printf("Symmetric Key Algorithm: %d\n", algorithm);
             printf("Symmetric Key:");
             kmip_print_buffer(stdout, key, key_size);
             printf("\n");
